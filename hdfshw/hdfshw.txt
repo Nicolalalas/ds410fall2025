@@ -2,35 +2,41 @@
 
 
 (Q4) 
-
+hdfs dfs -mkdir /user/$USER/myhdfshwdata
 
 (Q5)
+cd words
+hdfs dfs -put part-0000* /user/$USER/myhdfshwdata
 
 
 (Q6)
-
+hdfs dfs -ls /user/$USER
 
 (Q7)
-
+ls
 
 (Q8)
-
+hdfs dfs -ls /user/$USER/myhdfshwdata
 
 (Q9)
+hdfs dfs -mkdir /user/$USER/words
+hdfs dfs -mv /user/$USER/myhdfshwdata/* /user/$USER/words
 
 
 (Q10)
-
+hdfs dfs -rm -r /user/$USER/myhdfshwdata
 
 (Q11)
-
+hdfs dfs -cat /user/$USER/words/part-00002 | head -c 1024
 
 (Q12)
-
+hdfs dfs -ls /user/$USER/words/part-00001
 
 (Q13)
-
+hdfs dfs -cat /user/$USER/words/part-00002
 
 (Q14)
+I will never use hdfs dfs -cat /user/$USER/words/part-00002 and instead I will use the following command to show me a snippet at the
+beginning of an hdfs file hdfs dfs -cat /user/$USER/words/part-00002 | head -c 1024
 
 
