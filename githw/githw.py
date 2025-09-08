@@ -2,7 +2,7 @@
 def main():
     print("")
     print("###################################")
-    print("Me haz not finished git hw :-(")
+    print("Git hw completed successfully")
     print("###################################")
     print("      ___                          ")
     print("  _.-|   |          |\__/,|   (`\  ")
