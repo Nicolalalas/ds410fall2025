@@ -1,0 +1,6 @@
+"data"	8
+"a"	12
+"spring"	6
+"on"	5
+"semester"	4
+

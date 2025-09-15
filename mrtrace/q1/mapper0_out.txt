@@ -1,0 +1,12 @@
+"with"	5
+"great"	5
+"data"	5
+"come"	5
+"great"	5
+"responsibilities"	1
+"a"	3
+"data"	3
+"wall"	3
+"wall"	2
+"spring"	2
+

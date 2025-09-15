@@ -1,0 +1,16 @@
+"Humpty"	1
+"Dumpty"	5
+"sat"	5
+"on"	5
+"a"	5
+"wall"	5
+"Humpty"	4
+"Dumpty"	4
+"had"	4
+"a"	4
+"great"	1
+"fall"	4
+"semester"	4
+"and"	4
+"spring"	4
+
