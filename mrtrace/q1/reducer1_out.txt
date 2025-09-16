@@ -1,6 +1,10 @@
-"data"	8
+"Dumpty"	9
 "a"	12
-"spring"	6
-"on"	5
+"data"	8
+"fall"	4
+"had"	4
+"responsibilities"	0
 "semester"	4
+"with"	5
+
 

@@ -1,5 +1,8 @@
-"great"	5
-"come"	5
-"Dumpty"	9
-"had"	4
+"Humpty"	4
+"and"	4
+"great"	10
+"sat"	5
+"spring"	6
+"wall"	10
+
 

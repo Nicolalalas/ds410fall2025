@@ -1,8 +1,4 @@
-"with"	[5]
-"responsibilities"	[1]
-"wall"	[3,2,5]
-"Humpty"	[1,4]
-"sat"	[5]
-"fall"	[4]
-"and"	[4]
+"come"	[5]
+"on"	[5]
+
 
