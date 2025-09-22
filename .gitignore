@@ -1,0 +1,9 @@
+# Ignore intermediate output
+actual*.txt
+expected_sorted.txt
+*.log
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+

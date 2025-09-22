@@ -1,7 +1,0 @@
-"aeon"	1
-"apple"	1
-"book"	1
-"foot"	1
-"orange"	1
-"queue"	1
-"read"	1
