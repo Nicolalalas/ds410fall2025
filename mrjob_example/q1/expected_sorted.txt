@@ -1,0 +1,7 @@
+
+"apple"	3
+"banana"	2
+"brown"	1
+"fox"	2
+"quick"	1
+"the"	1

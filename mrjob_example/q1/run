@@ -1,0 +1,10 @@
+set -euo pipefail
+
+CODE="q1.py"
+INPUT="/datasets/wap"
+OUTPUT="/user/zjc5299/mrlab_q1_out_$(date +%s)"
+
+python3 "$CODE" -r hadoop "$INPUT" --output-dir "$OUTPUT"
+
+echo "Job finished, output is in HDFS: $OUTPUT"
+hdfs dfs -cat "$OUTPUT/part-*" | head -n 20
