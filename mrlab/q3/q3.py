@@ -1,17 +1,21 @@
 from mrjob.job import MRJob
 
-class Q3WordCountFilter(MRJob):
+class MRVowelWordsFilter(MRJob):
     def mapper(self, _, line):
         for word in line.split():
-            yield word.lower(), 1
+            w = word.lower()
+            vowels = sum(1 for c in w if c in "aeiou")
+            if vowels >= 2:
+                yield w, 1
 
-    def reducer(self, key, values):
-        total = sum(values)
-        vowels = sum(c in "aeiou" for c in key)
+    def reducer(self, word, counts):
+        total = sum(counts)
+        vowels = sum(1 for c in word if c in "aeiou")
         if total >= vowels:
-            yield key, total
+            yield word, total
 
-if __name__ == '__main__':
-    Q3WordCountFilter.run()
+if __name__ == "__main__":
+    MRVowelWordsFilter.run()
+
 
 

@@ -1,14 +1,18 @@
 from mrjob.job import MRJob
 
-class Q2WordCount(MRJob):
+class MRVowelWords(MRJob):
     def mapper(self, _, line):
         for word in line.split():
-            yield word.lower(), 1
+            word = word.lower()
+            vowels = sum(1 for c in word if c in "aeiou")
+            if vowels >= 2:
+                yield word, 1
 
-    def reducer(self, key, values):
-        yield key, sum(values)
+    def reducer(self, word, counts):
+        yield word, sum(counts)
 
-if __name__ == '__main__':
-    Q2WordCount.run()
+if __name__ == "__main__":
+    MRVowelWords.run()
+
 
 
