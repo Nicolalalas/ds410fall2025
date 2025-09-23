@@ -1,0 +1,6 @@
+InvoiceNo	StockCode	Description	Quantity	InvoiceDate	UnitPrice	CustomerID	Country
+10001	1234	Apple	1	2025-09-01	2.00	11111	USA
+10002	1234	Apple	10	2025-09-02	1.00	11112	USA
+10003	5678	Banana	5	2025-09-02	0.50	11113	France
+10004	5678	Banana	2	2025-09-03	0.75	11114	France
+
