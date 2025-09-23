@@ -6,13 +6,13 @@ class Q1(MRJob):
         f = line.rstrip("\n").split("\t")
         if not f or f[0].strip().lower() == "invoiceno":
             return
-        if len(f) < 8:            # 列数不够就跳
+        if len(f) < 8:
             return
         try:
             stock = f[1]
-            price_cent = int(Fraction(f[5]) * 100)  # UnitPrice -> 美分
+            price_cent = int(Fraction(f[5]) * 100)
         except Exception:
-            return               # 脏数据/空价格行跳过
+            return
         yield stock, price_cent
 
     def reducer(self, stock, cents_iter):
