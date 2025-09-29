@@ -8,15 +8,16 @@ class Q1(MRJob):
             return
         if len(f) < 8:
             return
-        try:
-            stock = f[1]
-            price_cent = int(Fraction(f[5]) * 100)
-        except Exception:
+        if f[5].strip() == "":
             return
+        stock = f[1]
+        price_cent = int(Fraction(f[5]) * 100)
         yield stock, price_cent
 
     def reducer(self, stock, cents_iter):
         cents = list(cents_iter)
+        if not cents:
+            return
         avg = sum(cents) / len(cents)
         yield stock, round(avg / 100, 2)
 
