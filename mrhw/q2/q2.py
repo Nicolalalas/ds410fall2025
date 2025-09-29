@@ -12,11 +12,14 @@ class Q2(MRJob):
         country = parts[7].strip()
         desc = parts[2].lower()
         qty_str = parts[3].strip()
+
         if not qty_str.isdigit():
             return
         qty = int(qty_str)
+
         for w in set(desc.split()):
-            yield (country, w), qty
+            if any(ch.isalnum() for ch in w):
+                yield (country, w), qty
 
     def reducer(self, key, vals):
         total = sum(vals)
