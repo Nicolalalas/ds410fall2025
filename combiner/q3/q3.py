@@ -1,33 +1,38 @@
 from mrjob.job import MRJob
+from fractions import Fraction
 
 class Q3(MRJob):
     def mapper(self, _, line):
-        fields = line.strip().split("\t")
-        if fields[0] == "InvoiceNo" or len(fields) < 8:
+        if line.startswith("InvoiceNo"):
             return
-        stock = fields[1]
-        price = float(fields[5])
-        yield stock, price
+        f = line.strip().split("\t")
+        if len(f) < 8:
+            return
+        stock = f[1]
+        price_pennies = int(Fraction(f[5]) * 100)
+        yield stock, (price_pennies, 1)
 
-    def combiner(self, stock, prices):
+    def combiner(self, stock, values):
         total = 0
         count = 0
-        for p in prices:
+        for p, c in values:
             total += p
-            count += 1
-        yield stock, total / count
+            count += c
+        yield stock, (total, count)
 
-    def reducer(self, stock, prices):
+    def reducer(self, stock, values):
         total = 0
         count = 0
-        for p in prices:
+        for p, c in values:
             total += p
-            count += 1
-        yield stock, round(total / count, 2)
+            count += c
+        avg_dollars = round(total / count / 100.0, 2)
+        yield stock, avg_dollars
 
 
 if __name__ == "__main__":
     Q3.run()
+
 
 
 
