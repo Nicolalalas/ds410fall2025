@@ -2,34 +2,29 @@ from mrjob.job import MRJob
 
 class Q3(MRJob):
     def mapper(self, _, line):
-        f = line.rstrip("\n").split("\t")
-        if not f or f[0].strip().lower() == "invoiceno":
+        fields = line.strip().split("\t")
+        if fields[0] == "InvoiceNo" or len(fields) < 8:
             return
-        if len(f) < 8:
-            return
-        if f[5].strip() == "":
-            return
-        stock = f[1]
-        price = float(f[5])
+        stock = fields[1]
+        price = float(fields[5])
         yield stock, price
 
-    def combiner(self, stock, values):
-        count = 0
+    def combiner(self, stock, prices):
         total = 0
-        for v in values:
-            total += v
+        count = 0
+        for p in prices:
+            total += p
             count += 1
-        avg = total / count
-        yield stock, avg
+        yield stock, total / count
 
-    def reducer(self, stock, value）：
-        count = 0
+    def reducer(self, stock, prices):
         total = 0
-        for v in values:
-            total += v
+        count = 0
+        for p in prices:
+            total += p
             count += 1
-        avg = total / count
-        yield stock, round(avg, 2)
+        yield stock, round(total / count, 2)
+
 
 if __name__ == "__main__":
     Q3.run()
