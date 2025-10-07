@@ -22,7 +22,7 @@ class Q3(MRJob):
         avg = total / count
         yield stock, avg
 
-    def reducer(self, stock, values):
+    def reducer(self, stock, value）：
         count = 0
         total = 0
         for v in values:
@@ -33,6 +33,7 @@ class Q3(MRJob):
 
 if __name__ == "__main__":
     Q3.run()
+
 
 
 
