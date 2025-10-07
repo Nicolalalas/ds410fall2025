@@ -11,26 +11,28 @@ class Q3(MRJob):
             return
         stock = f[1]
         price = float(f[5])
-        yield stock, (price, 1)
+        yield stock, price
 
     def combiner(self, stock, values):
-        total_sum = 0
-        total_count = 0
-        for s, c in values:
-            total_sum += s
-            total_count += c
-        yield stock, (total_sum, total_count)
+        count = 0
+        total = 0
+        for v in values:
+            total += v
+            count += 1
+        avg = total / count
+        yield stock, avg
 
     def reducer(self, stock, values):
-        total_sum = 0
-        total_count = 0
+        count = 0
+        total = 0
         for v in values:
-            total_sum += v[0]
-            total_count += v[1]
-        avg = total_sum / total_count
+            total += v
+            count += 1
+        avg = total / count
         yield stock, round(avg, 2)
 
 if __name__ == "__main__":
     Q3.run()
+
 
 
