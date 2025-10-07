@@ -16,20 +16,21 @@ class Q3(MRJob):
     def combiner(self, stock, values):
         total_sum = 0
         total_count = 0
-        for v in values:
-            total_sum += v[0]
-            total_count += v[1]
+        for s, c in values:
+            total_sum += s
+            total_count += c
         yield stock, (total_sum, total_count)
 
     def reducer(self, stock, values):
-        final_sum = 0
-        final_count = 0
+        total_sum = 0
+        total_count = 0
         for v in values:
-            final_sum += v[0]
-            final_count += v[1]
-        avg = final_sum / final_count
+            total_sum += v[0]
+            total_count += v[1]
+        avg = total_sum / total_count
         yield stock, round(avg, 2)
 
 if __name__ == "__main__":
     Q3.run()
+
 
