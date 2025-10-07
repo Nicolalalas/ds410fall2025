@@ -1,0 +1,4 @@
+["France", "car"]	11
+["France", "used"]	10
+["UK", "red"]	3
+["UK", "toy"]	3

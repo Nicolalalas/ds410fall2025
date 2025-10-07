@@ -1,0 +1,4 @@
+InvoiceNo	StockCode	Description	Quantity	InvoiceDate	UnitPrice	CustomerID	Country
+1	AAA	used car	10	2025-01-01	5.0	111	France
+2	BBB	car car car car car	1	2025-01-02	2.0	222	France
+3	CCC	red toy	3	2025-01-03	1.0	333	UK
