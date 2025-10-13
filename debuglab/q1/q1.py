@@ -12,15 +12,6 @@ class CityStats(MRJob):
         if population >= 100 and zip_count >= 2:
             yield state, (population, zip_count)
 
-    def combiner(self, state, values):
-        total_pop = 0
-        total_zips = 0
-        count = 0
-        for p, z in values:
-            total_pop += p
-            total_zips += z
-            count += 1
-        yield state, (total_pop, total_zips, count)
 
     def reducer(self, state, values):
         total_pop = 0
