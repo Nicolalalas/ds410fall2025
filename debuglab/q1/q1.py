@@ -8,19 +8,13 @@ class CityStats(MRJob):
         fields = line.split("\t")
         if len(fields) < 6:
             return
-
         state = fields[1].strip()
-        try_pop = fields[3].strip()
-        if not try_pop:
+        pop_field = fields[3].strip().replace(",", "")
+        if not pop_field.isdigit():
             return
-        pop_clean = "".join([c for c in try_pop if c.isdigit()])
-        if not pop_clean:
-            return
-        population = int(pop_clean)
-
+        population = int(pop_field)
         zipcodes = [z.strip() for z in fields[4].split(",") if z.strip()]
         zip_count = len(zipcodes)
-
         if population >= 100 or zip_count >= 2:
             yield state, (population, zip_count)
 
@@ -39,6 +33,7 @@ class CityStats(MRJob):
 
 if __name__ == "__main__":
     CityStats.run()
+
 
 
 
