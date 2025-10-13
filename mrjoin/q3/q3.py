@@ -1,63 +1,53 @@
 from mrjob.job import MRJob
 from mrjob.step import MRStep
-from mrjob.protocol import RawProtocol
 
-def _num_ok(x):
-    x = x.strip().replace(",", "")
-    if x == "":
-        return False
-    y = x.replace(".", "", 1)
-    return y.isdigit() or (y.startswith("-") and y[1:].replace(".", "", 1).isdigit())
-
-class MRItemsAndCustomersPerCountry(MRJob):
-    OUTPUT_PROTOCOL = RawProtocol
-
-    def mapper_step1(self, _, line):
-        fields = (line.rstrip("\n").split("\t")
-                  if "\t" in line else line.rstrip("\n").split(","))
-        if len(fields) < 8 or fields[0] == "InvoiceNo":
-            return
-        invoice_no = fields[0].strip()
-        qty_s = fields[3].strip()
-        customer_id = fields[6].strip()
-        country = fields[7].strip()
-        if invoice_no == "" or country == "" or not _num_ok(qty_s):
-            return
-        quantity = int(float(qty_s))
-        yield invoice_no, (country, customer_id, quantity)
-
-    def reducer_step1(self, invoice_no, rows):
-        total = 0
-        country = ""
-        customer_id = ""
-        for cty, cid, q in rows:
-            country = cty
-            customer_id = cid
-            total += q
-        yield country, (customer_id, total)
-
-    def mapper_step2(self, country, cid_total):
-        cid, total = cid_total
-        yield country, ("Q", total)
-        yield country, ("C", cid)
-
-    def reducer_step2(self, country, tagged_vals):
-        s = 0
-        seen = set()
-        for tag, v in tagged_vals:
-            if tag == "Q":
-                s += v
-            else:
-                seen.add(v)
-        out = f"[{s},  {len(seen)}]"
-        yield str(country), out
-
+class CountryItemsAndCustomers(MRJob):
     def steps(self):
         return [
-            MRStep(mapper=self.mapper_step1, reducer=self.reducer_step1),
-            MRStep(mapper=self.mapper_step2, reducer=self.reducer_step2),
+            MRStep(mapper=self.mapper, reducer=self.reducer_join),
+            MRStep(reducer=self.reducer_sum)
         ]
 
+    def mapper(self, _, line):
+        fields = line.rstrip("\n").split("\t")
+        if not fields:
+            return
+
+        # customers.txt -> CustomerID\tCountry
+        if len(fields) == 2 and fields[0] != "CustomerID":
+            yield fields[0].strip(), ("country", fields[1].strip())
+
+        # orders.txt -> InvoiceNo\tStockCode\tQuantity\tInvoiceDate\tCustomerID
+        elif len(fields) == 5 and fields[0] != "InvoiceNo":
+            customer_id = fields[4].strip()
+            qty_str = fields[2].strip()
+            if qty_str != "" and qty_str.strip("-").replace(".", "", 1).isdigit():
+                quantity = int(float(qty_str))
+                yield customer_id, ("order", quantity)
+
+    def reducer_join(self, customer_id, values):
+        country = None
+        total_items = 0
+        has_order = False
+
+        for data_type, value in values:
+            if data_type == "country":
+                country = value
+            else:
+                has_order = True
+                total_items += value
+
+        if country and has_order:
+            yield country, (total_items, 1)  # (items, one customer)
+
+    def reducer_sum(self, country, pairs):
+        total_items = 0
+        total_customers = 0
+        for items, cust_count in pairs:
+            total_items += items
+            total_customers += cust_count
+        yield str(country), [total_items, total_customers]
+
 if __name__ == "__main__":
-    MRItemsAndCustomersPerCountry.run()
+    CountryItemsAndCustomers.run()
 
