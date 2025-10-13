@@ -15,14 +15,14 @@ class CityStats(MRJob):
     def reducer(self, state, values):
         total_pop = 0
         total_zips = 0
-        total_cities = 0
+        count = 0
         for p, z in values:
             total_pop += p
             total_zips += z
-            total_cities += 1
-        avg_pop = total_pop / total_cities
-        avg_zip = total_zips / total_cities
-        yield state, f"{round(avg_pop, 2)}\t{round(avg_zip, 2)}"
+            count += 1
+        avg_pop = total_pop / count
+        avg_zip = total_zips / count
+        yield state, [round(avg_pop, 2), round(avg_zip, 2)]
 
 if __name__ == "__main__":
     CityStats.run()
