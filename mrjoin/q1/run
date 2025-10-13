@@ -1,3 +1,2 @@
 #!/usr/bin/env bash
-python3 q1.py q1/testdata/orders.txt
-
+python3 q1.py testdata/orders.txt
