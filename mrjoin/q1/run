@@ -1,2 +1,4 @@
 #!/usr/bin/env bash
-python3 q1.py testdata/orders.txt
+set -euo pipefail
+python3 q1.py testdata > actualresult.txt
+

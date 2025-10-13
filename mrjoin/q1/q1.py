@@ -1,32 +1,53 @@
 from mrjob.job import MRJob
 from mrjob.step import MRStep
 
-class BigOrderCount(MRJob):
+class CountryNumber(MRJob):
     def steps(self):
         return [
-            MRStep(mapper=self.mapper, reducer=self.reducer_invoice_total),
-            MRStep(reducer=self.reducer_count_big)
+            MRStep(mapper=self.mapper, reducer=self.reducer_country_orders),
+            MRStep(reducer=self.reducer_sum_quantities),
         ]
 
     def mapper(self, _, line):
-        f = line.rstrip('\n').split('\t')
-        if len(f) < 7 or f[0] == 'InvoiceNo':
+        fields = line.rstrip("\n").split("\t")
+        if not fields:
             return
-        yield f[0], (f[6], int(float(f[3])))
 
-    def reducer_invoice_total(self, invoice_no, values):
-        cid, s = '', 0
-        for c, q in values:
-            cid, s = c, s + q
-        yield cid, s
+        if len(fields) == 2 and fields[0] != "CustomerID":
+            yield fields[0].strip(), ("country", fields[1].strip())
+            return
 
-    def reducer_count_big(self, cid, totals):
-        c = 0
-        for t in totals:
-            if t >= 10:
-                c += 1
-        yield str(cid), str(c)
+        if len(fields) == 5 and fields[0] != "InvoiceNo":
+            invoice_no = fields[0].strip()
+            qty_s = fields[2].strip()
+            customer_id = fields[4].strip()
+            if qty_s != "" and qty_s.strip("-").replace(".", "", 1).isdigit():
+                quantity = int(float(qty_s))
+                yield customer_id, ("order", (invoice_no, quantity))
 
-if __name__ == '__main__':
-    BigOrderCount.run()
+    def reducer_country_orders(self, customer_id, values):
+        country = None
+        invoice_sums = {}
+        seen_order = False
+
+        for data_type, value in values:
+            if data_type == "country":
+                country = value
+            else:
+                seen_order = True
+                inv, qty = value
+                invoice_sums[inv] = invoice_sums.get(inv, 0) + qty
+
+        if seen_order:
+            big_cnt = 0
+            for total in invoice_sums.values():
+                if total >= 10:
+                    big_cnt += 1
+            yield customer_id, big_cnt
+
+    def reducer_sum_quantities(self, key, quantities):
+        yield str(key), str(sum(quantities))
+
+if __name__ == "__main__":
+    CountryNumber.run()
 
