@@ -2,41 +2,50 @@ from mrjob.job import MRJob
 from mrjob.step import MRStep
 from mrjob.protocol import RawProtocol
 
-def _num_ok(x):
-    x = x.strip().replace(",", "")
-    if x == "":
-        return False
-    y = x.replace(".", "", 1)
-    return y.isdigit() or (y.startswith("-") and y[1:].replace(".", "", 1).isdigit())
+def _to_int_num(s):
+    s = s.strip().replace(",", "")
+    if s == "":
+        return None
+    neg = 1
+    if s[0] == "-":
+        neg = -1
+        s = s[1:]
+    dots = s.split(".")
+    if not all(part.isdigit() for part in dots if part != ""):
+        return None
+    try:
+        return int(float("-" + s) if neg == -1 else float(s))
+    except Exception:
+        return None  # 不用 try/except 会更难写健壮，这里作为兜底你可删掉
 
 class MRBigOrdersPerCustomer(MRJob):
     OUTPUT_PROTOCOL = RawProtocol
 
     def mapper_step1(self, _, line):
-        fields = (line.rstrip("\n").split("\t")
-                  if "\t" in line else line.rstrip("\n").split(","))
-        if len(fields) < 8:
+        line = line.rstrip("\n")
+        fields = line.split("\t") if "\t" in line else line.split(",")
+        if len(fields) < 7:   # 至少要能取到 0,3,6
             return
         if fields[0] == "InvoiceNo":
             return
         invoice_no = fields[0].strip()
-        qty_s = fields[3].strip()
-        customer_id = fields[6].strip()
-        if invoice_no == "" or not _num_ok(qty_s):
+        qty = _to_int_num(fields[3])
+        customer_id = fields[6].strip() if len(fields) > 6 else ""
+        if qty is None:
             return
-        quantity = int(float(qty_s))
-        yield invoice_no, (customer_id, quantity)
+        # 不再强制 invoice_no 非空；题面保证同一发票的 customer 恒定
+        yield invoice_no, (customer_id, qty)
 
-    def reducer_step1(self, invoice_no, cust_qty_pairs):
+    def reducer_step1(self, invoice_no, rows):
         total = 0
         cid = ""
-        for c, q in cust_qty_pairs:
+        for c, q in rows:
             cid = c
             total += q
         yield cid, total
 
-    def mapper_step2(self, customer_id, invoice_total_qty):
-        yield customer_id, 1 if invoice_total_qty >= 10 else 0
+    def mapper_step2(self, customer_id, invoice_total):
+        yield customer_id, 1 if invoice_total >= 10 else 0
 
     def reducer_step2(self, customer_id, flags):
         yield str(customer_id), str(sum(flags))
