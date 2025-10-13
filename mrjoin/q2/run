@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+python3 q2.py testdata > actualresult.txt
+
