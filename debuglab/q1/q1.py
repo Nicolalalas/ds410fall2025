@@ -1,51 +1,112 @@
 from mrjob.job import MRJob
+import re
 
-class CityStats(MRJob):
+
+def _is_state_abbrev(token: str) -> bool:
+    s = token.strip()
+    return len(s) == 2 and s.isalpha() and s.isupper()
+
+
+def _is_number_token(token: str) -> bool:
+    t = token.strip().replace(",", "")
+    if t == "":
+        return False
+    return t.replace(".", "", 1).isdigit()
+
+
+def _to_int_number(token: str) -> int:
+    t = token.strip().replace(",", "")
+    return int(float(t))
+
+
+_zip_plus4 = re.compile(r"\b\d{3,5}-\d{3,4}\b")
+_digits = re.compile(r"\d+")
+
+
+def _count_zip_tokens_in_zip_columns(text: str) -> int:
+    if not text:
+        return 0
+    cnt = 0
+
+    def _mark(m):
+        nonlocal cnt
+        cnt += 1
+        return "Z"
+
+    text = _zip_plus4.sub(_mark, text)
+    for run in _digits.findall(text):
+        L = len(run)
+        if L in (3, 4, 5, 7, 8, 9):
+            cnt += 1
+    return cnt
+
+
+class StateZipStats(MRJob):
     def mapper(self, _, line):
-        # 允许空行，允许 header
-        if not line:
+        fields = line.rstrip("\n").split("\t")
+        if len(fields) < 3:
             return
-        # 以 TAB 为主（/datasets/cities 是 TSV）
-        fields = line.strip().split("\t")
-        if len(fields) < 6:
+        state = None
+        if len(fields) >= 4:
+            cand = fields[3].strip()
+            if _is_state_abbrev(cand):
+                state = cand
+        if state is None:
+            for tok in fields:
+                if _is_state_abbrev(tok):
+                    state = tok.strip()
+                    break
+        if not state or state.lower() == "state":
             return
-        if fields[0].lower() == "name":   # 跳过表头
+        population = None
+        if len(fields) >= 5:
+            pop_s = fields[4].strip().replace(",", "")
+            if pop_s and pop_s.replace(".", "", 1).isdigit():
+                population = _to_int_number(pop_s)
+        if population is None:
+            for tok in fields:
+                if _is_number_token(tok):
+                    raw = tok.strip().replace(",", "")
+                    if raw.isdigit() and (len(raw) == 5 or len(raw) == 9):
+                        continue
+                    population = _to_int_number(raw)
+                    break
+        if population is None:
             return
+        zip_count = 0
+        if len(fields) >= 6:
+            for tok in fields[5:]:
+                zip_count += _count_zip_tokens_in_zip_columns(tok)
+        else:
+            best_multi = 0
+            for tok in fields:
+                c = _count_zip_tokens_in_zip_columns(tok)
+                if c >= 2 and c > best_multi:
+                    best_multi = c
+            if best_multi >= 2:
+                zip_count = best_multi
+            else:
+                for tok in fields:
+                    if _count_zip_tokens_in_zip_columns(tok) == 1:
+                        zip_count = 1
+                        break
+        yield state, (population, zip_count, 1)
 
-        state = fields[1].strip()
-
-        # 人口字段（第4列）应为整数
-        pop_field = fields[3].strip().replace(",", "")
-        if not pop_field or not pop_field.isdigit():
-            return
-        population = int(pop_field)
-
-        # zipcode 列（第5列），按逗号切
-        zips_raw = fields[4]
-        zips = [z.strip() for z in zips_raw.split(",") if z.strip()]
-        zip_count = len(zips)
-
-        # DebugLab 常规：不过度过滤，保留正常记录
-        if population >= 0 and zip_count >= 1:
-            # 交给 reducer 统计平均人口与平均 zip 数
-            yield state, (population, zip_count)
-
-    def reducer(self, state, values):
-        total_pop = 0.0
-        total_zip = 0.0
+    def reducer(self, state, triples):
+        total_pop = 0
+        total_zip = 0
         n = 0
-        for p, zc in values:
-            total_pop += p
+        for pop, zc, one in triples:
+            total_pop += pop
             total_zip += zc
-            n += 1
+            n += one
         if n > 0:
-            avg_pop = round(total_pop / n, 2)
-            avg_zip = round(total_zip / n, 2)
-            # 用 list 与 expected_output.txt 的方括号风格一致
-            yield state, [avg_pop, avg_zip]
+            yield state, [total_pop / n, total_zip / n]
+
 
 if __name__ == "__main__":
-    CityStats.run()
+    StateZipStats.run()
+
 
 
 
