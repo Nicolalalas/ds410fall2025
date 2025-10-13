@@ -46,7 +46,7 @@ class CountryNumber(MRJob):
             yield customer_id, big_cnt
 
     def reducer_sum_quantities(self, key, quantities):
-        yield str(key), str(sum(quantities))
+        yield str(key), sum(quantities)
 
 if __name__ == "__main__":
     CountryNumber.run()
