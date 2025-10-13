@@ -1,0 +1,8 @@
+InvoiceNo	StockCode	Description	Quantity	InvoiceDate	UnitPrice	CustomerID	Country
+10001	AAA	X	4	2024-01-01 10:00	2.0	17850	United Kingdom
+10001	BBB	Y	3	2024-01-01 10:00	1.0	17850	United Kingdom
+10002	CCC	Z	2	2024-01-01 10:05	3.0	13047	France
+10003	DDD	W	6	2024-01-01 10:10	1.0	13047	France
+10003	EEE	V	5	2024-01-01 10:10	1.0	13047	France
+10004	FFF	U	9	2024-01-01 10:15	1.0		United Kingdom
+
