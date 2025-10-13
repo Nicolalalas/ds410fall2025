@@ -1,3 +1,9 @@
-python3 q1.py testdata.txt > q1_output.txt
+#!/usr/bin/env bash
+if [ -e /datasets/cities ]; then
+    python3 q1.py /datasets/cities --jobconf mapred.reduce.tasks=5 > actualresult.txt
+else
+    python3 q1.py testdata.txt > actualresult.txt
+fi
+
 
 
