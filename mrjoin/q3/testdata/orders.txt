@@ -1,0 +1,8 @@
+InvoiceNo	StockCode	Description	Quantity	InvoiceDate	UnitPrice	CustomerID	Country
+20001	A	X	4	2024-01-01 10:00	2.0	111	UK
+20001	B	Y	3	2024-01-01 10:00	1.0	111	UK
+20002	C	Z	2	2024-01-01 10:05	3.0	222	France
+20003	D	W	6	2024-01-01 10:10	1.0	222	France
+20003	E	V	5	2024-01-01 10:10	1.0	222	France
+20004	F	U	9	2024-01-01 10:15	1.0		UK
+
