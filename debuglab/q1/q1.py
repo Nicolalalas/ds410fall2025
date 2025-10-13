@@ -1,31 +1,39 @@
-from mrjob.job import MRJob   
+from mrjob.job import MRJob
 
-class UninformativeClassName(MRJob):  
-    """ this is a docstring """
+class CityStats(MRJob):
+    def mapper(self, _, line):
+        fields = line.strip().split("\t")
+        if len(fields) < 6 or fields[0] == "name":
+            return
+        state = fields[1].strip()
+        population = int(fields[3])
+        zipcodes = fields[4].split(",")
+        zip_count = len([z for z in zipcodes if z.strip() != ""])
+        if population >= 100 and zip_count >= 2:
+            yield state, (population, zip_count)
 
-    def mapper(self, key, line): 
-        """ 
-        This mapper expects the following information as input:
-          key: write some stuff about the key
-          value: write informative stuff about the value
-        and its goal is to yield the following information .....
-        """
-        aaaaaa = line.split()
-        city = aaaaa[1]
-        thingy = aaaaaa[2] # example of why we need good variable names
-        population = aaaaaa[4]
-        zipcdoes = aaaaaa[5]
-        yield thingy, (population, len(zipcodes))
+    def combiner(self, state, values):
+        total_pop = 0
+        total_zips = 0
+        count = 0
+        for p, z in values:
+            total_pop += p
+            total_zips += z
+            count += 1
+        yield state, (total_pop, total_zips, count)
 
     def reducer(self, state, values):
-        """ Just as we document the mapper, do the same with the reducer """
-        city_count = len(values)
-        aaaaaaaaa = 0
-        for (p,z) in values:
-            population += p
-            avg_pop = population/city_count
-        aaaaaaaaa = max(aaaaaaaaa, z) 
-        yield state, (avg_pop, aaaaaaaa)
+        total_pop = 0
+        total_zips = 0
+        total_cities = 0
+        for p, z, c in values:
+            total_pop += p
+            total_zips += z
+            total_cities += c
+        avg_pop = total_pop / total_cities
+        avg_zip = total_zips / total_cities
+        yield state, (round(avg_pop, 2), round(avg_zip, 2))
 
-if __name__ == '__main__':
-    WordCount.run()  
+if __name__ == "__main__":
+    CityStats.run()
+
