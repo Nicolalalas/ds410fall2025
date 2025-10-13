@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
+set -e
 if [ -e /datasets/cities ]; then
-    python3 q1.py /datasets/cities --jobconf mapred.reduce.tasks=5 > actualresult.txt
+  python3 q1.py /datasets/cities -r hadoop --jobconf mapred.reduce.tasks=5
 else
-    python3 q1.py testdata.txt > actualresult.txt
+  python3 q1.py testdata.txt
 fi
+
 
 
 
