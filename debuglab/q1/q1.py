@@ -2,35 +2,27 @@ from mrjob.job import MRJob
 
 class CityStats(MRJob):
     def mapper(self, _, line):
-        line = line.strip()
-        if not line or line.startswith("name"):
+        fields = line.strip().split()
+        if fields[0] == "name":
             return
-        fields = line.split("\t")
-        if len(fields) < 6:
-            return
-        state = fields[1].strip()
-        pop_field = fields[3].strip().replace(",", "")
-        if not pop_field.isdigit():
-            return
-        population = int(pop_field)
-        zipcodes = [z.strip() for z in fields[4].split(",") if z.strip()]
-        zip_count = len(zipcodes)
-        if population >= 100 or zip_count >= 2:
-            yield state, (population, zip_count)
+        state = fields[1]
+        population = float(fields[3])
+        zipcodes = fields[4].split(",")
+        yield state, (population, len(zipcodes))
 
     def reducer(self, state, values):
-        total_pop = 0.0
-        total_zip = 0.0
-        count = 0
-        for p, z in values:
-            total_pop += p
-            total_zip += z
-            count += 1
-        if count > 0:
-            avg_pop = total_pop / count
-            avg_zip = total_zip / count
-            yield state, (round(avg_pop, 2), round(avg_zip, 2))
+        total_pop = 0
+        total_cities = 0
+        zip_counts = []
+        for pop, zcount in values:
+            total_pop += pop
+            total_cities += 1
+            zip_counts.append(zcount)
+        avg_pop = total_pop / total_cities
+        max_zip = max(zip_counts)
+        yield state, (avg_pop, float(max_zip))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     CityStats.run()
+
 
