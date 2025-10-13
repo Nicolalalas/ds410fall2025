@@ -1,3 +1,2 @@
-#!/bin/bash
-python3 q1.py /datasets/cities -r hadoop --jobconf mapreduce.job.reduces=50 > q1_output.txt
+python3 q1.py testdata.txt > q1_output.txt
 
