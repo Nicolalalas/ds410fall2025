@@ -1,0 +1,7 @@
+InvoiceNo	StockCode	Description	Quantity	InvoiceDate	UnitePrice	CustomerID	Country
+1	100A	ITE	1	1/1/10 1.01	UK
+2	101B	BAG	2	1/1/10 2.02	UK
+3	102C	CUP	3	1/1/10 3.01	UK
+4	103D	ITE	4	1/1/10 4.03	FR
+5	104E	PEN	2	1/1/10 5.04	FR
+6	105F	BOX	1	1/1/10 1.02	UK
