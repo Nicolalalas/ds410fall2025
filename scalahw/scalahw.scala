@@ -34,6 +34,7 @@ object HW {
       x.foldLeft((0.0, 0.0)) { case ((sum1, sum2), (a, b)) =>
     (sum1 + a, sum2 + b)
     }
+  }
 
     
     def q7(x: Seq[(Double, Double)]): (Double, Double) = {
