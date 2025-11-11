@@ -9,6 +9,10 @@ object Q4 {
     saveit("spark4output", result)
   }
 
+def saveit(name: String, counts: RDD[(String, (Int, Int, Long))]): Unit = {
+  counts.saveAsTextFile(name)
+}
+
   def getSC(): SparkContext = new SparkContext(new SparkConf().setAppName("Q4"))
   def getRDD(sc: SparkContext): RDD[String] = sc.textFile("hdfs:///datasets/cities")
 

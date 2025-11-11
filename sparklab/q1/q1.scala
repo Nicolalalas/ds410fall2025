@@ -8,7 +8,9 @@ object Q1 {
     val counts = doRetail(sc, lines)
     saveit("spark1output", counts)
   }
-
+def saveit(name: String, counts: RDD[(String, Int)]): Unit = {
+  counts.saveAsTextFile(name)
+}
   def getSC(): SparkContext = {
     new SparkContext(new SparkConf().setAppName("Q1"))
   }

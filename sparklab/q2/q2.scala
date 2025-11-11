@@ -8,6 +8,9 @@ object Q2 {
     val out = doRetail(sc, rdd)
     saveit("spark2output", out)
   }
+def saveit(name: String, counts: RDD[(String, (Int, Int))]): Unit = {
+  counts.saveAsTextFile(name)
+}
 
   def getSC(): SparkContext = new SparkContext(new SparkConf().setAppName("Q2"))
   def getRDD(sc: SparkContext): RDD[String] = sc.textFile("hdfs:///datasets/retailtab")
