@@ -17,22 +17,21 @@ object Q1 {
     sc.textFile("hdfs:///datasets/retailtab")
   }
 
-  def doRetail(sc: SparkContext, lines: RDD[String]): RDD[(String, Int)] = {
-    val body = lines
-      .filter(line => !line.startsWith("InvoiceNo\t"))
-      .map { line =>
-        val f = line.split("\t", -1)
-        val customer = if (f.length > 6) f(6) else ""
-        val invoice  = if (f.length > 0) f(0) else ""
-        (customer, invoice)
-      }
-      .filter { case (c, inv) => c.nonEmpty && inv.nonEmpty }
-
-    val uniqueOrders = body.distinct()
-    uniqueOrders
-      .map { case (c, _inv) => (c, 1) }
-      .reduceByKey((a, b) => a + b)
+def doRetail(sc: SparkContext, lines: RDD[String]): RDD[(String, Int)] = {
+  val body = lines.flatMap { line =>
+    val f = line.split("\t", -1)
+    if (f.length >= 7) {
+      val invoice = f(0)
+      val customer = f(6)
+      if (invoice != "InvoiceNo" && customer.nonEmpty && invoice.nonEmpty) Some((customer, invoice)) else None
+    } else None
   }
+
+  val uniqueOrders = body.distinct()
+  uniqueOrders
+    .map { case (c, _inv) => (c, 1) }
+    .reduceByKey((a, b) => a + b)
+}
 
   def getTestRDD(sc: SparkContext): RDD[String] = {
     sc.parallelize(Seq(

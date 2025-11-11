@@ -13,22 +13,21 @@ object Q4 {
   def getRDD(sc: SparkContext): RDD[String] = sc.textFile("hdfs:///datasets/cities")
 
 def doCities(input: RDD[String]): RDD[(String, (Int, Int, Long))] = {
-  val body = input
+  val rows = input
     .filter(line => !line.startsWith("name\t"))
-    .flatMap { line =>
+    .map { line =>
       val f = line.split("\t", -1)
-      if (f.length > 3) {
-        val state = f(1)
-        val pStr  = f(3)
-        try {
-          val p = pStr.toLong
-          if (state.nonEmpty) Some((state, p)) else None
-        } catch { case _: Throwable => None }
-      } else None
+      val s = if (f.length > 1) f(1) else ""
+      val p = if (f.length > 3) f(3) else ""
+      (s, p)
     }
+    .filter { case (s, p) =>
+      s.nonEmpty && p.nonEmpty && p.forall(ch => ch >= '0' && ch <= '9')
+    }
+    .map { case (s, p) => (s, p.toLong) }
 
-  body
-    .map { case (s, p) => (s, (1, if (p > 100000L) 1 else 0, p)) }
+  rows
+    .map { case (s, pop) => (s, (1, if (pop > 100000L) 1 else 0, pop)) }
     .reduceByKey { case ((c1, l1, t1), (c2, l2, t2)) => (c1 + c2, l1 + l2, t1 + t2) }
 }
 

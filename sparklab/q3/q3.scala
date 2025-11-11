@@ -22,18 +22,20 @@ def doRetail(input: RDD[String]): RDD[(String, (Int, Int))] = {
       val desc     = if (f.length > 2) f(2) else ""
       (customer, invoice, desc)
     }
-    .filter { case (c, inv, _) => c.nonEmpty && inv.nonEmpty }
+    .filter { case (_c, inv, _d) => inv.nonEmpty }
 
-  val lineCount = body.map { case (c, _inv, _d) => (c, 1) }.reduceByKey((a, b) => a + b)
+  val lineCount = body
+    .map { case (c, _inv, _d) => (c, (1, 0)) }
 
   val iteOrderCount = body
     .filter { case (_c, _inv, d) => d.contains("ITE") }
     .map { case (c, inv, _d) => (c, inv) }
     .distinct()
-    .map { case (c, _inv) => (c, 1) }
-    .reduceByKey((a, b) => a + b)
+    .map { case (c, _inv) => (c, (0, 1)) }
 
-  lineCount.leftOuterJoin(iteOrderCount).map { case (c, (lc, oc)) => (c, (lc, oc.getOrElse(0))) }
+  lineCount
+    .union(iteOrderCount)
+    .reduceByKey { case ((lc1, oc1), (lc2, oc2)) => (lc1 + lc2, oc1 + oc2) }
 }
 
   def getTestRDD(sc: SparkContext): RDD[String] = sc.parallelize(Seq(
