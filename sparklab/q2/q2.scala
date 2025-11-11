@@ -13,19 +13,20 @@ object Q2 {
   def getRDD(sc: SparkContext): RDD[String] = sc.textFile("hdfs:///datasets/retailtab")
 
   def doRetail(sc: SparkContext, lines: RDD[String]): RDD[(String, (Int, Int))] = {
-    val header = lines.take(1)(0)
-    val headerFields = header.split("\t", -1)
-    val nameToIdx = headerFields.indices.map(i => headerFields(i) -> i).toMap
-    val idxInv = nameToIdx("InvoiceNo")
-    val idxCus = nameToIdx("CustomerID")
+    val body = lines
+      .filter(line => !line.startsWith("InvoiceNo\t"))
+      .map { line =>
+        val f = line.split("\t", -1)
+        val customer = if (f.length > 6) f(6) else ""
+        val invoice  = if (f.length > 0) f(0) else ""
+        (customer, invoice)
+      }
+      .filter { case (c, inv) => c.nonEmpty && inv.nonEmpty }
 
-    val body = lines.mapPartitionsWithIndex{ case (pi, it) => if (pi==0) it.drop(1) else it }
-      .map{ l => val f = l.split("\t", -1); (f(idxCus), f(idxInv)) }
-      .filter{ case (c, inv) => c.nonEmpty && inv.nonEmpty }
+    val lineCnt = body.map { case (c, _inv) => (c, 1) }.reduceByKey((a, b) => a + b)
+    val ordCnt  = body.distinct().map { case (c, _inv) => (c, 1) }.reduceByKey((a, b) => a + b)
 
-    val lineCnt = body.map{ case (c, _inv) => (c, 1) }.reduceByKey((a,b)=>a+b)
-    val ordCnt  = body.distinct().map{ case (c, _inv) => (c, 1) }.reduceByKey((a,b)=>a+b)
-    lineCnt.join(ordCnt).map{ case (c,(lc,oc)) => (c,(lc,oc)) }
+    lineCnt.join(ordCnt).map { case (c, (lc, oc)) => (c, (lc, oc)) }
   }
 
   def getTestRDD(sc: SparkContext): RDD[String] = sc.parallelize(Seq(

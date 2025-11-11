@@ -18,23 +18,20 @@ object Q1 {
   }
 
   def doRetail(sc: SparkContext, lines: RDD[String]): RDD[(String, Int)] = {
-    val header = lines.take(1)(0)
-    val headerFields = header.split("\t", -1)
-    val nameToIdx = headerFields.indices.map(i => headerFields(i) -> i).toMap
-    val iInvoice = nameToIdx("InvoiceNo")
-    val iCustomer = nameToIdx("CustomerID")
-
-    val body = lines.mapPartitionsWithIndex { case (idx, it) =>
-      if (idx == 0) it.drop(1) else it
-    }.map { line =>
-      val f = line.split("\t", -1)
-      val c = f(iCustomer)
-      val inv = f(iInvoice)
-      (c, inv)
-    }.filter { case (c, inv) => c.nonEmpty && inv.nonEmpty }
+    val body = lines
+      .filter(line => !line.startsWith("InvoiceNo\t"))
+      .map { line =>
+        val f = line.split("\t", -1)
+        val customer = if (f.length > 6) f(6) else ""
+        val invoice  = if (f.length > 0) f(0) else ""
+        (customer, invoice)
+      }
+      .filter { case (c, inv) => c.nonEmpty && inv.nonEmpty }
 
     val uniqueOrders = body.distinct()
-    uniqueOrders.map { case (c, _inv) => (c, 1) }.reduceByKey((a, b) => a + b)
+    uniqueOrders
+      .map { case (c, _inv) => (c, 1) }
+      .reduceByKey((a, b) => a + b)
   }
 
   def getTestRDD(sc: SparkContext): RDD[String] = {

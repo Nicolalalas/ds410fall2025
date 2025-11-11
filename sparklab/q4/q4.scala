@@ -12,28 +12,25 @@ object Q4 {
   def getSC(): SparkContext = new SparkContext(new SparkConf().setAppName("Q4"))
   def getRDD(sc: SparkContext): RDD[String] = sc.textFile("hdfs:///datasets/cities")
 
-  def doCities(input: RDD[String]): RDD[(String, (Int, Int, Long))] = {
-    val header = input.take(1)(0)
-    val hf = header.split("\t", -1)
-    val nameToIdx = hf.indices.map(i => hf(i) -> i).toMap
-    val iState = nameToIdx("state")
-    val iPop   = nameToIdx("population")
+def doCities(input: RDD[String]): RDD[(String, (Int, Int, Long))] = {
+  val body = input
+    .filter(line => !line.startsWith("name\t"))
+    .flatMap { line =>
+      val f = line.split("\t", -1)
+      if (f.length > 3) {
+        val state = f(1)
+        val pStr  = f(3)
+        try {
+          val p = pStr.toLong
+          if (state.nonEmpty) Some((state, p)) else None
+        } catch { case _: Throwable => None }
+      } else None
+    }
 
-    val body = input.mapPartitionsWithIndex{ case (pi,it) => if (pi==0) it.drop(1) else it }
-      .flatMap{ l =>
-        val f = l.split("\t", -1)
-        if (f.length > math.max(iState, iPop)) {
-          val s = f(iState)
-          val ps = f(iPop)
-          try { val p = ps.toLong; if (s.nonEmpty) Some((s,p)) else None }
-          catch { case _: Throwable => None }
-        } else None
-      }
-
-    body
-      .map{ case (s,p) => (s, (1, if (p > 100000L) 1 else 0, p)) }
-      .reduceByKey{ case ((c1,l1,t1),(c2,l2,t2)) => (c1+c2, l1+l2, t1+t2) }
-  }
+  body
+    .map { case (s, p) => (s, (1, if (p > 100000L) 1 else 0, p)) }
+    .reduceByKey { case ((c1, l1, t1), (c2, l2, t2)) => (c1 + c2, l1 + l2, t1 + t2) }
+}
 
   def doRetail(input: RDD[String]): RDD[(String, (Int, Int, Long))] = doCities(input)
 
