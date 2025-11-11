@@ -1,4 +1,4 @@
-name := "q1"
+name := "q2"
 version := "0.1.0"
 scalaVersion := "2.12.18"
 
@@ -9,5 +9,5 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql"  % sparkVersion % "provided"
 )
 
-Compile / packageBin / mainClass := Some("Q1")
+Compile / packageBin / mainClass := Some("Q2")
 
