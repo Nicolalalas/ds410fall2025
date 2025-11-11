@@ -9,31 +9,26 @@ object Q4 {
     saveit("spark4output", result)
   }
 
-def saveit(name: String, counts: RDD[(String, (Int, Int, Long))]): Unit = {
-  counts.saveAsTextFile(name)
-}
-
   def getSC(): SparkContext = new SparkContext(new SparkConf().setAppName("Q4"))
+
   def getRDD(sc: SparkContext): RDD[String] = sc.textFile("hdfs:///datasets/cities")
 
-def doCities(input: RDD[String]): RDD[(String, (Int, Int, Long))] = {
-  val rows = input
-    .filter(line => !line.startsWith("name\t"))
-    .map { line =>
-      val f = line.split("\t", -1)
-      val s = if (f.length > 1) f(1) else ""
-      val p = if (f.length > 3) f(3) else ""
-      (s, p)
-    }
-    .filter { case (s, p) =>
-      s.nonEmpty && p.nonEmpty && p.forall(ch => ch >= '0' && ch <= '9')
-    }
-    .map { case (s, p) => (s, p.toLong) }
+  def doCities(input: RDD[String]): RDD[(String, (Int, Int, Long))] = {
+    val rows = input
+      .filter(line => !line.startsWith("name\t"))
+      .map { line =>
+        val f = line.split("\t", -1)
+        val s = if (f.length > 1) f(1) else ""
+        val p = if (f.length > 3) f(3) else ""
+        (s, p)
+      }
+      .filter { case (s, p) => s.nonEmpty && p.nonEmpty && p.forall(ch => ch >= '0' && ch <= '9') }
+      .map { case (s, p) => (s, p.toLong) }
 
-  rows
-    .map { case (s, pop) => (s, (1, if (pop > 100000L) 1 else 0, pop)) }
-    .reduceByKey { case ((c1, l1, t1), (c2, l2, t2)) => (c1 + c2, l1 + l2, t1 + t2) }
-}
+    rows
+      .map { case (s, pop) => (s, (1, if (pop > 100000L) 1 else 0, pop)) }
+      .reduceByKey { case ((c1, l1, t1), (c2, l2, t2)) => (c1 + c2, l1 + l2, t1 + t2) }
+  }
 
   def doRetail(input: RDD[String]): RDD[(String, (Int, Int, Long))] = doCities(input)
 
@@ -50,7 +45,8 @@ def doCities(input: RDD[String]): RDD[(String, (Int, Int, Long))] = {
   def expectedOutput(sc: SparkContext): RDD[(String, (Int, Int, Long))] =
     sc.parallelize(Seq(("PA",(2,1,210000L)), ("DC",(1,1,700000L)), ("NY",(2,1,230000L))))
 
-  def saveit(name: String, counts: RDD[(String, (Int, Int, Long))]): Unit =
+  def saveit(name: String, counts: RDD[(String, (Int, Int, Long))]): Unit = {
     counts.saveAsTextFile(name)
+  }
 }
 

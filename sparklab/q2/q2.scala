@@ -8,40 +8,30 @@ object Q2 {
     val out = doRetail(sc, rdd)
     saveit("spark2output", out)
   }
-def saveit(name: String, counts: RDD[(String, (Int, Int))]): Unit = {
-  counts.saveAsTextFile(name)
-}
 
   def getSC(): SparkContext = new SparkContext(new SparkConf().setAppName("Q2"))
+
   def getRDD(sc: SparkContext): RDD[String] = sc.textFile("hdfs:///datasets/retailtab")
 
-def doRetail(sc: SparkContext, lines: RDD[String]): RDD[(String, (Int, Int))] = {
-  val body = lines
-    .filter(line => !line.startsWith("InvoiceNo\t"))
-    .map { line =>
-      val f = line.split("\t", -1)
-      val customer = if (f.length > 6) f(6) else ""
-      val invoice  = if (f.length > 0) f(0) else ""
-      (customer, invoice)
-    }
-    .filter { case (c, inv) => c.nonEmpty && inv.nonEmpty }
+  def doRetail(sc: SparkContext, lines: RDD[String]): RDD[(String, (Int, Int))] = {
+    val body = lines
+      .filter(line => !line.startsWith("InvoiceNo\t"))
+      .map { line =>
+        val f = line.split("\t", -1)
+        val customer = if (f.length > 6) f(6) else ""
+        val invoice = if (f.length > 0) f(0) else ""
+        (customer, invoice)
+      }
+      .filter { case (c, inv) => c.nonEmpty && inv.nonEmpty }
 
-  val lineCnt = body
-    .map { case (c, _inv) => (c, 1) }
-    .reduceByKey((a, b) => a + b)
+    val lineCnt = body.map { case (c, _) => (c, 1) }.reduceByKey((a, b) => a + b)
+    val ordCnt = body.distinct().map { case (c, _) => (c, 1) }.reduceByKey((a, b) => a + b)
 
-  val ordCnt = body
-    .distinct()
-    .map { case (c, _inv) => (c, 1) }
-    .reduceByKey((a, b) => a + b)
-
-  val merged = lineCnt
-    .map { case (c, n) => (c, (n, 0)) }
-    .union(ordCnt.map { case (c, n) => (c, (0, n)) })
-    .reduceByKey { case ((l1, o1), (l2, o2)) => (l1 + l2, o1 + o2) }
-
-  merged
-}
+    lineCnt
+      .map { case (c, n) => (c, (n, 0)) }
+      .union(ordCnt.map { case (c, n) => (c, (0, n)) })
+      .reduceByKey { case ((l1, o1), (l2, o2)) => (l1 + l2, o1 + o2) }
+  }
 
   def getTestRDD(sc: SparkContext): RDD[String] = sc.parallelize(Seq(
     "InvoiceNo\tStockCode\tDescription\tQuantity\tInvoiceDate\tUnitPrice\tCustomerID\tCountry",
@@ -56,7 +46,8 @@ def doRetail(sc: SparkContext, lines: RDD[String]): RDD[(String, (Int, Int))] = 
   def expectedOutput(sc: SparkContext): RDD[(String, (Int, Int))] =
     sc.parallelize(Seq(("13047",(3,2)), ("17850",(3,2))))
 
-  def saveit(name: String, counts: RDD[(String, (Int, Int))]): Unit =
+  def saveit(name: String, counts: RDD[(String, (Int, Int))]): Unit = {
     counts.saveAsTextFile(name)
+  }
 }
 
