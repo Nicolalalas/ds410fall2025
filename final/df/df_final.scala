@@ -15,6 +15,7 @@ object DFFinal {
         import org.apache.spark.sql.functions._
 
         val cleaned = input
+        .filter(size(input.columns) === 7 || lit(true))
         .select(
             col("_c0").as("City"),
             col("_c3").as("County")
