@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Remove output directory if it exists
+hdfs dfs -rm -r -f final_mr
+
+# Run MRJob
+python3 mr_final.py -r hadoop hdfs:///datasets/cities --output-dir hdfs:///user/$USER/final_mr
