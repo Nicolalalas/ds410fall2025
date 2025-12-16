@@ -11,6 +11,22 @@ object DFFinal {
     }
 
     def doFinal(input: DataFrame): DataFrame = {
+        import input.sparkSession.implicits._
+        import org.apache.spark.sql.functions._
+
+        val cityCountyCounts = input
+        .groupBy($"City",$"County")
+        .count()
+        .filter($"count" % 3 =!= 0)
+
+        val cityAgg = cityCountyCounts
+        .groupBy($"city")
+        .agg(
+            count($"County").as("riddle"),
+            sum($"count").as("enigma")
+            )
+
+        cityAgg.filters($"riddle" =!= $"enigma")
 
     }
 
@@ -20,16 +36,32 @@ object DFFinal {
     }
 
     def getDF(spark: SparkSession): DataFrame = {
+        spark.read
+        .option("header","true")
+        .option("sep", "\t")
+        .csv("data/city.tsv")
 
     }
     
     def getTestDF(spark: SparkSession): DataFrame = {
         import spark.implicits._
 
+        Seq(
+            ("A","C1"),
+            ("A","C1"),
+            ("A","C2"),
+            ("B","C3")
+            ). toDF("City", "County")
+
     }
 
     def expectedOutput(spark: SparkSession): DataFrame = {
         import spark.implicits._
+
+        Seq(
+            ("A", 2L, 3L),
+            ("B", 1L, 1L)
+            ).toDF("City","riddle", "enigma")
 
     }
  
