@@ -14,6 +14,12 @@ object DFFinal {
         import input.sparkSession.implicits._
         import org.apache.spark.sql.functions._
 
+        val cleaned = input
+        .select(
+            col("_c0").as("City"),
+            col("_c3").as("County")
+            )
+
         val cityCountyCounts = input
         .groupBy($"City",$"County")
         .count()
