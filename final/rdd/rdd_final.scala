@@ -11,23 +11,53 @@ object RDDFinal {
     }
 
     def getSC(): SparkContext = {
+        val conf = new SparkConf()
+        .setAppName("RDD Final")
+        .setMaster("local[*]")
+        new SparkContext(conf)
 
     }
 
-    def getRDD(sc:SparkContext): RDD[String] = { // get the orders rdd
+    def getRDD(sc:SparkContext): RDD[String] = { 
+        sc.textFile("data/city.tsv")
     }
 
-    def doFinal(input: RDD[String]): OutputType = { // see definition of OutputType above
-       // don't forget: in scala, if you divide two ints, you get an int back
-       // if you want a double, you have to convert one of the ints to a double before dividing
+    def doFinal(input: RDD[String]): OutputType = {
+        val cityCoountyCounts = input
+        .filter(line => !line.startsWith("City\t"))
+        .map(_.split("\t"))
+        .filter(parts => parts.length == 7)
+        .map(parts => ((parts(0).trim, parts(3).trim),1))
+        .reduceBykey(_+_)
+        .filter { case (_, count) => count % 3 != 0}
 
+        val cityAgg = cityCountyCounts
+        .map { case ((city, _), count) => (city, (1, count))}
+        .reducceBykey {
+            case ((r1, e1), (r2, e2)) =>
+              (r1 + r2, e1 + e2)
+        }
+
+    cityAgg.filter { case (_, (riddle, enigma)) => riddle != enigma }    
+      
     }
    
     def getTestRDD(sc: SparkContext): RDD[String] = {
+        sc.parallelize(Seq(
+            "CiTY\tX\tX\tCounty\tX\tX\tX",
+            "A\tX\tX\tC1\tX\tX\tX",
+            "A\tX\tX\tC1\tX\tX\tX",
+            "A\tX\tX\tC2\tX\tX\tX"
+            "B\tX\tX\tC3\tX\tX\tX"
+            ))
 
     }
 
-    def expectedOutput(sc: SparkContext): OutputType = { // see definition of OutputType above
+    def expectedOutput(sc: SparkContext): OutputType = {
+        sc.parallelize(Seq(
+            ("A", (2,3))
+            ("B", (1,1))
+            ))
 
     }
 
