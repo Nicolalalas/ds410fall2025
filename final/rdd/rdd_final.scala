@@ -11,10 +11,7 @@ object RDDFinal {
     }
 
     def getSC(): SparkContext = {
-        val conf = new SparkConf()
-        .setAppName("RDD Final")
-        .setMaster("local[*]")
-        new SparkContext(conf)
+        SparkContext.getOrCreate()
 
     }
 
