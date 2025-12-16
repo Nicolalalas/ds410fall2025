@@ -13,6 +13,9 @@ class City(MRJob):
         county = parts[3].strip()
         yield (city, county), 1
 
+    def combiner_one(self, key, values):
+        yield key, sum(values)
+
 
     def reducer_one(self, key, valuelist):
         mystery = sum(valuelist)
@@ -24,6 +27,14 @@ class City(MRJob):
     def mapper_two(self, key, value):  
         (city, county) = key
         yield city, (1, value)
+
+    def combiner_two(self, city, values):
+        riddle = 0
+        enigma = 0
+        for r, e in values:
+            riddle += r
+            enigma += e
+        yield city, (riddle, enigma)
 
 
     def reducer_two(self, key, valuelist):
@@ -38,12 +49,19 @@ class City(MRJob):
 
     def steps(self):
         return [
-            #MRStep(mapper=self.mapper_one, reducer=self.reducer_one, combiner=self.combiner_one),
-            #MRStep(mapper=self.mapper_two, reducer=self.reducer_two, combiner=self.combiner_two)
-            MRStep(mapper=self.mapper_one, reducer=self.reducer_one),
-            MRStep(mapper=self.mapper_two, reducer=self.reducer_two)
+            MRStep(
+                mapper=self.mapper_one,
+                combiner=self.combiner_one,
+                reducer=self.reducer_one
+            ),
+            MRStep(
+                mapper=self.mapper_two,
+                combiner=self.combiner_two,
+                reducer=self.reducer_two
+            )
         ]
 
 
 if __name__ == '__main__':
     City.run()  # if you don't have these two lines, your code will not do anything
+
